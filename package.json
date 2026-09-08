@@ -1,0 +1,10 @@
+{
+  "name": "diagnostico-financiero-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Backend serverless (Netlify Functions) para generar y enviar por correo el PDF del Diagnóstico Financiero Inteligente.",
+  "dependencies": {
+    "resend": "^4.0.0",
+    "pdfkit": "^0.15.0"
+  }
+}

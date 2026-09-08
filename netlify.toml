@@ -1,0 +1,13 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+  command = "npm install"
+
+[functions]
+  node_bundler = "esbuild"
+
+# Redirección corta y opcional para llamar la función como /api/send-report
+[[redirects]]
+  from = "/api/send-report"
+  to = "/.netlify/functions/send-report"
+  status = 200

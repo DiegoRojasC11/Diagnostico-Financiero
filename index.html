@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnóstico Financiero Inteligente</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+/* ============================================================
+   TOKENS
+   ============================================================ */
+:root{
+  --navy-900:#0A1E38;
+  --navy-800:#0F2A4C;
+  --navy-700:#173A64;
+  --blue-600:#2E63E7;
+  --blue-500:#4C7CF0;
+  --blue-100:#E8EFFD;
+  --gray-25:#FAFBFD;
+  --gray-50:#F5F7FB;
+  --gray-100:#EEF1F6;
+  --gray-200:#E1E6EE;
+  --gray-400:#98A5B8;
+  --gray-500:#75839A;
+  --gray-600:#54617A;
+  --gray-900:#111A2B;
+  --white:#FFFFFF;
+  --green-600:#177A50;
+  --green-500:#1D9A63;
+  --green-100:#E2F5EC;
+  --yellow-700:#8A5B04;
+  --yellow-600:#B4790A;
+  --yellow-100:#FCF1D8;
+  --red-600:#B3232C;
+  --red-500:#D33842;
+  --red-100:#FBE7E8;
+  --radius-s:8px;
+  --radius-m:14px;
+  --radius-l:22px;
+  --shadow-s:0 1px 2px rgba(10,20,40,.06), 0 1px 1px rgba(10,20,40,.04);
+  --shadow-m:0 10px 30px rgba(10,20,40,.08);
+  --shadow-l:0 20px 50px rgba(10,20,40,.14);
+  --font-head:'Manrope', sans-serif;
+  --font-body:'Inter', sans-serif;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  font-family:var(--font-body);
+  color:var(--gray-900);
+  background:var(--gray-50);
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:var(--font-head); margin:0; color:var(--navy-900); line-height:1.15;}
+p{margin:0; line-height:1.6;}
+button{font-family:inherit; cursor:pointer;}
+a{color:inherit;}
+::selection{background:var(--blue-100);}
+:focus-visible{outline:2px solid var(--blue-500); outline-offset:2px;}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+}
+
+.screen{display:none; min-height:100vh;}
+.screen.active{display:block; animation:fadeIn .5s ease;}
+@keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+.wrap{max-width:1180px; margin:0 auto; padding:0 32px;}
+@media (max-width:640px){ .wrap{padding:0 18px;} }
+
+/* ============================================================
+   BUTTONS / BADGES / CARDS
+   ============================================================ */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding:14px 26px; border-radius:999px; border:none; font-weight:700;
+  font-size:15px; font-family:var(--font-body); transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+  white-space:nowrap;
+}
+.btn:active{transform:scale(.98);}
+.btn-primary{background:var(--blue-600); color:#fff; box-shadow:0 10px 24px rgba(46,99,231,.28);}
+.btn-primary:hover{background:#2554cc; box-shadow:0 12px 28px rgba(46,99,231,.36);}
+.btn-primary:disabled{background:var(--gray-200); color:var(--gray-500); box-shadow:none; cursor:not-allowed;}
+.btn-secondary{background:#fff; color:var(--navy-800); border:1.5px solid var(--gray-200);}
+.btn-secondary:hover{border-color:var(--blue-500); color:var(--blue-600);}
+.btn-ghost{background:transparent; color:var(--gray-600); padding:10px 6px;}
+.btn-ghost:hover{color:var(--navy-800);}
+.btn-sm{padding:9px 16px; font-size:13.5px;}
+
+.badge{
+  display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:999px;
+  font-size:12.5px; font-weight:700;
+}
+.badge-green{background:var(--green-100); color:var(--green-600);}
+.badge-yellow{background:var(--yellow-100); color:var(--yellow-700);}
+.badge-red{background:var(--red-100); color:var(--red-600);}
+.badge-dot{width:7px; height:7px; border-radius:50%; background:currentColor; flex:none;}
+
+.card{
+  background:#fff; border:1px solid var(--gray-100); border-radius:var(--radius-m);
+  box-shadow:var(--shadow-s); padding:26px;
+}
+.card--flat{box-shadow:none;}
+
+[data-tooltip]{position:relative;}
+[data-tooltip]:hover::after, [data-tooltip]:focus::after{
+  content:attr(data-tooltip); position:absolute; bottom:calc(100% + 9px); left:50%; transform:translateX(-50%);
+  background:var(--navy-900); color:#fff; padding:8px 12px; border-radius:8px; font-size:12.5px; font-weight:500;
+  white-space:normal; width:max-content; max-width:220px; box-shadow:var(--shadow-m); z-index:50; line-height:1.4;
+}
+[data-tooltip]:hover::before, [data-tooltip]:focus::before{
+  content:""; position:absolute; bottom:calc(100% + 4px); left:50%; transform:translateX(-50%);
+  border:5px solid transparent; border-top-color:var(--navy-900); z-index:50;
+}
+
+/* ============================================================
+   LANDING
+   ============================================================ */
+.landing-nav{
+  display:flex; align-items:center; justify-content:space-between; padding:26px 0;
+}
+.brand{display:flex; align-items:center; gap:10px; font-family:var(--font-head); font-weight:800; font-size:18px; color:var(--navy-900);}
+.brand-mark{
+  width:34px; height:34px; border-radius:9px; background:linear-gradient(155deg, var(--blue-600), var(--navy-800));
+  display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:15px; flex:none;
+}
+.landing-hero{
+  display:grid; grid-template-columns:1.1fr .9fr; gap:60px; align-items:center;
+  padding:60px 0 90px;
+}
+@media (max-width:900px){ .landing-hero{grid-template-columns:1fr; padding:30px 0 50px;} }
+.eyebrow-pill{
+  display:inline-flex; align-items:center; gap:8px; background:var(--blue-100); color:var(--blue-600);
+  font-weight:700; font-size:13px; padding:7px 14px; border-radius:999px; margin-bottom:22px;
+}
+.landing-hero h1{font-size:46px; letter-spacing:-0.5px; margin-bottom:20px;}
+@media (max-width:640px){ .landing-hero h1{font-size:32px;} }
+.landing-hero .lead{font-size:18px; color:var(--gray-600); max-width:520px; margin-bottom:30px;}
+.landing-cta-row{display:flex; align-items:center; gap:18px; flex-wrap:wrap; margin-bottom:14px;}
+.free-note{font-size:13.5px; color:var(--gray-500); font-weight:600;}
+
+.benefits{display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:56px;}
+@media (max-width:760px){ .benefits{grid-template-columns:1fr;} }
+.benefit h3{font-size:16.5px; margin:14px 0 6px;}
+.benefit p{color:var(--gray-600); font-size:14.5px;}
+.benefit-icon{
+  width:44px; height:44px; border-radius:12px; background:var(--blue-100); color:var(--blue-600);
+  display:flex; align-items:center; justify-content:center; font-size:20px;
+}
+
+.score-preview{
+  background:linear-gradient(165deg, var(--navy-800), var(--navy-900));
+  border-radius:28px; padding:40px 34px; color:#fff; box-shadow:var(--shadow-l); position:relative; overflow:hidden;
+}
+.score-preview::before{
+  content:""; position:absolute; width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, rgba(76,124,240,.35), transparent 70%); top:-100px; right:-80px;
+}
+.score-preview-label{font-size:13px; font-weight:700; text-transform:none; color:#B9C9EE; letter-spacing:.2px;}
+.score-ring-wrap{display:flex; align-items:center; gap:22px; margin:18px 0 22px; position:relative;}
+.score-big{font-family:var(--font-head); font-size:56px; font-weight:800;}
+.score-big span{font-size:22px; color:#9FB3E0; font-weight:600;}
+.score-cat{font-size:14.5px; color:#CBD8F5; font-weight:600;}
+.score-preview-list{display:flex; flex-direction:column; gap:12px; position:relative;}
+.score-preview-row{display:flex; align-items:center; justify-content:space-between; font-size:13.5px; color:#D7E1F7; border-top:1px solid rgba(255,255,255,.1); padding-top:12px;}
+.mini-dot{width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:8px;}
+
+/* ============================================================
+   STEP SCREENS (company / upload)
+   ============================================================ */
+.step-header{padding:34px 0 10px;}
+.step-back{display:flex; align-items:center; gap:8px; font-size:14px; font-weight:600; color:var(--gray-500); margin-bottom:22px; background:none; border:none;}
+.step-back:hover{color:var(--navy-800);}
+.stepper{display:flex; align-items:center; gap:10px; margin-bottom:30px;}
+.stepper-item{display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--gray-400);}
+.stepper-item.active{color:var(--blue-600);}
+.stepper-item.done{color:var(--green-600);}
+.stepper-dot{width:24px; height:24px; border-radius:50%; background:var(--gray-100); display:flex; align-items:center; justify-content:center; font-size:12px; flex:none;}
+.stepper-item.active .stepper-dot{background:var(--blue-600); color:#fff;}
+.stepper-item.done .stepper-dot{background:var(--green-500); color:#fff;}
+.stepper-line{width:32px; height:2px; background:var(--gray-200);}
+@media (max-width:640px){ .stepper-item span.label-text{display:none;} }
+
+.form-card{max-width:640px; margin:0 auto;}
+.form-row{margin-bottom:20px;}
+.form-row label{display:block; font-size:13.5px; font-weight:700; color:var(--navy-800); margin-bottom:8px;}
+.form-row input, .form-row select{
+  width:100%; padding:13px 15px; border-radius:var(--radius-s); border:1.5px solid var(--gray-200);
+  font-size:15px; font-family:inherit; background:#fff; color:var(--gray-900); transition:border-color .15s ease;
+}
+.form-row input:focus, .form-row select:focus{border-color:var(--blue-500);}
+.form-grid-2{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+@media (max-width:560px){ .form-grid-2{grid-template-columns:1fr;} }
+.form-hint{font-size:12.5px; color:var(--gray-500); margin-top:6px;}
+.form-footer{display:flex; justify-content:flex-end; margin-top:8px;}
+
+.upload-grid{display:grid; grid-template-columns:1fr 1fr; gap:22px; max-width:820px; margin:0 auto;}
+@media (max-width:720px){ .upload-grid{grid-template-columns:1fr;} }
+.dropzone{
+  border:1.5px dashed var(--gray-200); border-radius:var(--radius-m); padding:30px 24px; text-align:center;
+  background:#fff; transition:border-color .2s ease, background .2s ease;
+}
+.dropzone.drag-over{border-color:var(--blue-500); background:var(--blue-100);}
+.dropzone.is-loaded{border-style:solid; border-color:var(--green-500); background:var(--green-100);}
+.dropzone-icon{
+  width:52px; height:52px; border-radius:14px; background:var(--blue-100); color:var(--blue-600);
+  display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-size:22px;
+}
+.dropzone.is-loaded .dropzone-icon{background:#fff; color:var(--green-600);}
+.dropzone h3{font-size:16px; margin-bottom:6px;}
+.dropzone p{font-size:13.5px; color:var(--gray-500); margin-bottom:18px;}
+.file-info{
+  display:none; align-items:center; gap:10px; background:#fff; border:1px solid var(--gray-200); border-radius:10px;
+  padding:10px 14px; text-align:left; margin-top:14px; font-size:13px;
+}
+.dropzone.is-loaded .file-info{display:flex;}
+.dropzone.is-loaded .dz-cta{display:none;}
+.file-info-icon{color:var(--green-600); font-size:17px; flex:none;}
+.file-info-name{font-weight:700; color:var(--navy-800); display:block;}
+.file-info-meta{color:var(--gray-500); font-size:12px;}
+
+.upload-actions{max-width:820px; margin:34px auto 0; display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;}
+.demo-link{font-size:14px; font-weight:700; color:var(--blue-600); background:none; border:none; padding:6px;}
+.demo-link:hover{text-decoration:underline;}
+
+/* ============================================================
+   PROCESSING
+   ============================================================ */
+.processing-wrap{
+  min-height:100vh; display:flex; align-items:center; justify-content:center; flex-direction:column; padding:40px 20px;
+}
+.spinner{
+  width:58px; height:58px; border-radius:50%; border:4px solid var(--gray-200); border-top-color:var(--blue-600);
+  animation:spin 0.9s linear infinite; margin-bottom:28px;
+}
+@keyframes spin{ to{transform:rotate(360deg);} }
+.processing-wrap h2{font-size:22px; margin-bottom:6px;}
+.processing-wrap .sub{color:var(--gray-500); margin-bottom:34px; font-size:14.5px;}
+.checklist{width:100%; max-width:400px; display:flex; flex-direction:column; gap:14px;}
+.checklist-item{
+  display:flex; align-items:center; gap:12px; font-size:14.5px; color:var(--gray-400); font-weight:600;
+  opacity:.5; transition:opacity .3s ease, color .3s ease;
+}
+.checklist-item.active{opacity:1; color:var(--navy-800);}
+.checklist-item.done{opacity:1; color:var(--green-600);}
+.check-circle{
+  width:22px; height:22px; border-radius:50%; border:2px solid var(--gray-300); flex:none;
+  display:flex; align-items:center; justify-content:center; font-size:12px; color:transparent;
+  transition:all .25s ease;
+}
+.checklist-item.active .check-circle{border-color:var(--blue-600);}
+.checklist-item.done .check-circle{background:var(--green-500); border-color:var(--green-500); color:#fff;}
+.proc-progress{width:100%; max-width:400px; height:6px; background:var(--gray-200); border-radius:99px; margin-top:30px; overflow:hidden;}
+.proc-progress-bar{height:100%; width:0%; background:var(--blue-600); border-radius:99px; transition:width .4s ease;}
+
+/* ============================================================
+   DASHBOARD LAYOUT
+   ============================================================ */
+.dash-layout{display:flex; min-height:100vh;}
+.sidebar{
+  width:250px; flex:none; background:var(--navy-900); color:#fff; padding:26px 18px;
+  position:sticky; top:0; height:100vh; overflow-y:auto; display:flex; flex-direction:column;
+}
+.sidebar-brand{display:flex; align-items:center; gap:10px; font-family:var(--font-head); font-weight:800; font-size:16px; padding:6px 10px 22px;}
+.sidebar-company{
+  background:rgba(255,255,255,.06); border-radius:12px; padding:14px; margin-bottom:20px;
+}
+.sidebar-company .name{font-weight:700; font-size:14px; margin-bottom:3px;}
+.sidebar-company .meta{font-size:12px; color:#9FB0D2;}
+.sidebar-nav{display:flex; flex-direction:column; gap:2px; flex:1;}
+.sidebar-nav a{
+  display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:9px; font-size:13.8px; font-weight:600;
+  color:#B7C4E2; text-decoration:none; transition:background .15s ease, color .15s ease;
+}
+.sidebar-nav a:hover{background:rgba(255,255,255,.07); color:#fff;}
+.sidebar-nav a.active{background:var(--blue-600); color:#fff;}
+.sidebar-icon{width:18px; text-align:center; flex:none; font-size:14px;}
+.sidebar-footer{padding-top:16px; border-top:1px solid rgba(255,255,255,.1); margin-top:16px;}
+.sidebar-reset{width:100%; background:rgba(255,255,255,.08); color:#fff; border:none; border-radius:9px; padding:10px; font-size:13px; font-weight:700;}
+.sidebar-reset:hover{background:rgba(255,255,255,.15);}
+
+.mobile-topbar{display:none; align-items:center; justify-content:space-between; padding:16px 18px; background:var(--navy-900); color:#fff; position:sticky; top:0; z-index:40;}
+.mobile-topbar button{background:rgba(255,255,255,.1); border:none; color:#fff; padding:8px 12px; border-radius:8px; font-size:13px; font-weight:700;}
+
+@media (max-width:900px){
+  .sidebar{position:fixed; left:-270px; z-index:60; transition:left .25s ease; box-shadow:var(--shadow-l);}
+  .sidebar.open{left:0;}
+  .mobile-topbar{display:flex;}
+}
+
+.dash-main{flex:1; min-width:0; padding:36px 40px 100px;}
+@media (max-width:900px){ .dash-main{padding:26px 18px 80px;} }
+
+.dash-header{display:flex; align-items:flex-start; justify-content:space-between; gap:20px; margin-bottom:34px; flex-wrap:wrap;}
+.dash-header h1{font-size:26px;}
+.dash-header .meta{color:var(--gray-500); font-size:14px; margin-top:6px;}
+.dash-header .meta b{color:var(--navy-800);}
+
+.dsection{margin-bottom:64px; scroll-margin-top:24px;}
+.dsection-head{margin-bottom:22px;}
+.dsection-head h2{font-size:21px;}
+.dsection-head p{color:var(--gray-500); font-size:14.5px; margin-top:6px; max-width:640px;}
+
+/* resumen */
+.summary-card{
+  display:grid; grid-template-columns:220px 1fr; gap:36px; align-items:center; padding:34px;
+}
+@media (max-width:760px){ .summary-card{grid-template-columns:1fr; text-align:center;} }
+.ring-wrap{position:relative; width:180px; height:180px; margin:0 auto;}
+.ring-wrap svg{transform:rotate(-90deg);}
+.ring-bg{fill:none; stroke:var(--gray-100); stroke-width:14;}
+.ring-fg{fill:none; stroke:var(--blue-600); stroke-width:14; stroke-linecap:round; transition:stroke-dashoffset 1.1s cubic-bezier(.4,0,.2,1);}
+.ring-center{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;}
+.ring-score{font-family:var(--font-head); font-size:38px; font-weight:800; color:var(--navy-900);}
+.ring-score span{font-size:15px; color:var(--gray-500); font-weight:600;}
+.ring-label{font-size:12.5px; color:var(--gray-500); font-weight:700; margin-top:2px;}
+.summary-text h3{font-size:15px; margin-bottom:10px;}
+.summary-text p{color:var(--gray-600); font-size:15px;}
+
+/* indicator grid */
+.ind-category{margin-bottom:34px;}
+.ind-category h3{font-size:15.5px; color:var(--navy-800); margin-bottom:14px; display:flex; align-items:center; gap:10px;}
+.ind-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:16px;}
+.ind-card{padding:20px;}
+.ind-card-top{display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px;}
+.ind-icon{width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; flex:none;}
+.ind-value{font-family:var(--font-head); font-size:26px; font-weight:800; color:var(--navy-900); margin-bottom:4px;}
+.ind-name{font-size:13.5px; font-weight:700; color:var(--gray-700); margin-bottom:8px;}
+.ind-desc{font-size:12.8px; color:var(--gray-500); line-height:1.5;}
+
+/* charts */
+.chart-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+@media (max-width:840px){ .chart-grid{grid-template-columns:1fr;} }
+.chart-card h3{font-size:15px; margin-bottom:4px;}
+.chart-card .chart-note{font-size:12.5px; color:var(--gray-500); margin-bottom:16px;}
+.chart-card canvas{max-height:260px;}
+
+/* analysis cards */
+.analysis-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+@media (max-width:760px){ .analysis-grid{grid-template-columns:1fr;} }
+.analysis-card h3{font-size:15.5px; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;}
+.analysis-card p{font-size:14px; color:var(--gray-600);}
+.gerencial-lead{font-size:15.5px; color:var(--navy-800); font-weight:500; margin-bottom:26px; padding:20px 24px; background:var(--blue-100); border-radius:var(--radius-m); border-left:4px solid var(--blue-600);}
+
+/* fortalezas / alertas */
+.flag-list{display:flex; flex-direction:column; gap:14px;}
+.flag-item{display:flex; gap:16px; padding:18px 20px;}
+.flag-icon{width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:17px; flex:none;}
+.flag-item h4{font-size:14.8px; margin-bottom:4px;}
+.flag-item p{font-size:13.6px; color:var(--gray-600);}
+
+/* recomendaciones */
+.reco-list{display:flex; flex-direction:column; gap:18px;}
+.reco-card{display:grid; grid-template-columns:64px 1fr; gap:22px; padding:26px;}
+@media (max-width:600px){ .reco-card{grid-template-columns:1fr;} }
+.reco-num{
+  font-family:var(--font-head); font-size:26px; font-weight:800; color:var(--blue-600);
+  width:56px; height:56px; border-radius:14px; background:var(--blue-100); display:flex; align-items:center; justify-content:center;
+}
+.reco-card h3{font-size:16.5px; margin-bottom:10px;}
+.reco-block{margin-bottom:12px;}
+.reco-block b{display:block; font-size:12.5px; text-transform:uppercase; letter-spacing:.4px; color:var(--gray-400); margin-bottom:6px; font-weight:700;}
+.reco-block ul{margin:0; padding-left:18px; font-size:14px; color:var(--gray-600); display:flex; flex-direction:column; gap:5px;}
+.reco-impact{font-size:13.5px; color:var(--green-600); font-weight:600; background:var(--green-100); display:inline-block; padding:6px 12px; border-radius:8px; margin-top:4px;}
+
+/* semaforo */
+.semaforo-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px;}
+.semaforo-item{padding:22px; display:flex; flex-direction:column; align-items:flex-start; gap:10px;}
+.semaforo-item .sf-label{font-size:14px; font-weight:700; color:var(--navy-800);}
+
+/* score breakdown */
+.score-detail{display:grid; grid-template-columns:1fr 1fr; gap:36px; align-items:center;}
+@media (max-width:800px){ .score-detail{grid-template-columns:1fr;} }
+.breakdown-row{margin-bottom:16px;}
+.breakdown-top{display:flex; justify-content:space-between; font-size:13.5px; font-weight:700; color:var(--navy-800); margin-bottom:6px;}
+.breakdown-top span.weight{color:var(--gray-400); font-weight:600;}
+.bd-bar{height:9px; border-radius:99px; background:var(--gray-100); overflow:hidden;}
+.bd-bar-fill{height:100%; border-radius:99px; transition:width 1s ease;}
+.score-explain{color:var(--gray-600); font-size:14.5px; margin-top:20px; padding-top:20px; border-top:1px solid var(--gray-100);}
+
+/* conclusion */
+.conclusion-card{background:linear-gradient(160deg, var(--navy-800), var(--navy-900)); color:#fff; padding:42px;}
+.conclusion-card h2{color:#fff; font-size:22px; margin-bottom:16px;}
+.conclusion-card p{color:#CBD6EF; font-size:16px; max-width:760px;}
+
+/* CTA */
+.cta-card{
+  text-align:center; padding:56px 40px; background:linear-gradient(135deg, var(--blue-600), #4C4FE7);
+  color:#fff; border-radius:var(--radius-l);
+}
+.cta-card h2{color:#fff; font-size:26px; margin-bottom:14px;}
+.cta-card p{color:#E4E9FE; max-width:560px; margin:0 auto 28px; font-size:15.5px;}
+.cta-buttons{display:flex; gap:14px; justify-content:center; flex-wrap:wrap;}
+.cta-buttons .btn-secondary{background:#fff; border:none; color:var(--blue-600);}
+.cta-buttons .btn-outline{background:transparent; border:1.5px solid rgba(255,255,255,.5); color:#fff;}
+.cta-buttons .btn-outline:hover{background:rgba(255,255,255,.12);}
+
+/* servicios */
+.services-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:18px;}
+.service-card{padding:24px;}
+.service-icon{width:40px; height:40px; border-radius:11px; background:var(--blue-100); color:var(--blue-600); display:flex; align-items:center; justify-content:center; font-size:18px; margin-bottom:14px;}
+.service-card h3{font-size:15.5px; margin-bottom:6px;}
+.service-card p{font-size:13.6px; color:var(--gray-600);}
+
+/* modal */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(10,20,40,.55); display:none; align-items:center; justify-content:center;
+  z-index:100; padding:20px; backdrop-filter:blur(2px);
+}
+.modal-overlay.open{display:flex; animation:fadeIn .2s ease;}
+.modal-box{background:#fff; border-radius:var(--radius-m); padding:32px; max-width:420px; width:100%; box-shadow:var(--shadow-l); text-align:center;}
+.modal-box .modal-icon{width:52px; height:52px; border-radius:14px; background:var(--blue-100); color:var(--blue-600); display:flex; align-items:center; justify-content:center; font-size:22px; margin:0 auto 18px;}
+.modal-box h3{font-size:18px; margin-bottom:10px;}
+.modal-box p{color:var(--gray-600); font-size:14.5px; margin-bottom:22px;}
+
+.footer-note{text-align:center; color:var(--gray-400); font-size:12.5px; padding:30px 0 10px;}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+<!-- ============================================================
+     PANTALLA 1: LANDING
+============================================================ -->
+<section id="screen-landing" class="screen active">
+  <div class="wrap">
+    <nav class="landing-nav">
+      <div class="brand"><span class="brand-mark">FD</span> Finanza Diagnóstico</div>
+      <button class="btn btn-secondary btn-sm" id="btn-nav-start">Iniciar diagnóstico</button>
+    </nav>
+
+    <div class="landing-hero">
+      <div>
+        <div class="eyebrow-pill">🔎 Diagnóstico inicial sin costo</div>
+        <h1>Diagnóstico Financiero Inteligente</h1>
+        <p class="lead">Convierte tus estados financieros en decisiones estratégicas. Obtén una visión clara de la situación financiera de tu empresa, identifica oportunidades de mejora y conoce los principales indicadores que impactan tu negocio.</p>
+        <div class="landing-cta-row">
+          <button class="btn btn-primary" id="btn-start">Comenzar diagnóstico</button>
+        </div>
+        <div class="free-note">Sin costo · Resultados en menos de 2 minutos · No requiere tarjeta de crédito</div>
+      </div>
+
+      <div class="score-preview">
+        <div class="score-preview-label">Vista previa del informe</div>
+        <div class="score-ring-wrap">
+          <div>
+            <div class="score-big">61<span>/100</span></div>
+            <div class="score-cat">Salud financiera moderada</div>
+          </div>
+        </div>
+        <div class="score-preview-list">
+          <div class="score-preview-row"><span><span class="mini-dot" style="background:#F0B429"></span>Liquidez</span><span>Atención</span></div>
+          <div class="score-preview-row"><span><span class="mini-dot" style="background:#33D690"></span>Rentabilidad</span><span>Saludable</span></div>
+          <div class="score-preview-row"><span><span class="mini-dot" style="background:#F0B429"></span>Endeudamiento</span><span>Atención</span></div>
+          <div class="score-preview-row"><span><span class="mini-dot" style="background:#F0B429"></span>Capital de trabajo</span><span>Atención</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="benefits">
+      <div class="benefit">
+        <div class="benefit-icon">📊</div>
+        <h3>Análisis financiero</h3>
+        <p>Indicadores clave de desempeño calculados a partir de tus propios estados financieros.</p>
+      </div>
+      <div class="benefit">
+        <div class="benefit-icon">🧠</div>
+        <h3>Diagnóstico inteligente</h3>
+        <p>Interpretación automática de los resultados, sin necesidad de conocimientos financieros previos.</p>
+      </div>
+      <div class="benefit">
+        <div class="benefit-icon">🎯</div>
+        <h3>Recomendaciones</h3>
+        <p>Prioridades concretas para mejorar la gestión financiera de tu empresa.</p>
+      </div>
+    </div>
+    <div class="footer-note">Diagnóstico inicial sin costo · MVP de demostración</div>
+  </div>
+</section>
+
+<!-- ============================================================
+     PANTALLA 2: DATOS DE LA EMPRESA
+============================================================ -->
+<section id="screen-company" class="screen">
+  <div class="wrap">
+    <div class="step-header">
+      <button class="step-back" id="back-to-landing">← Volver al inicio</button>
+      <div class="stepper">
+        <div class="stepper-item active" data-step="1"><span class="stepper-dot">1</span><span class="label-text">Datos de la empresa</span></div>
+        <div class="stepper-line"></div>
+        <div class="stepper-item" data-step="2"><span class="stepper-dot">2</span><span class="label-text">Cargar archivos</span></div>
+        <div class="stepper-line"></div>
+        <div class="stepper-item" data-step="3"><span class="stepper-dot">3</span><span class="label-text">Diagnóstico</span></div>
+      </div>
+    </div>
+
+    <div class="form-card card">
+      <h2 style="font-size:20px; margin-bottom:6px;">Cuéntanos sobre tu empresa</h2>
+      <p style="color:var(--gray-500); font-size:14px; margin-bottom:26px;">Esta información aparecerá en tu informe de diagnóstico.</p>
+
+      <div class="form-row">
+        <label for="inp-company">Nombre de la empresa</label>
+        <input type="text" id="inp-company" value="Empresa Demo S.A.S.">
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label for="inp-nit">NIT <span style="color:var(--gray-400); font-weight:500;">(opcional)</span></label>
+          <input type="text" id="inp-nit" placeholder="900.123.456-7">
+        </div>
+        <div class="form-row">
+          <label for="inp-sector">Sector económico</label>
+          <select id="inp-sector">
+            <option>Comercio</option>
+            <option>Servicios</option>
+            <option>Manufactura</option>
+            <option>Construcción</option>
+            <option>Tecnología</option>
+            <option>Agroindustria</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label for="inp-periodo">Periodo analizado</label>
+          <input type="text" id="inp-periodo" value="Enero - Diciembre 2026">
+        </div>
+        <div class="form-row">
+          <label for="inp-moneda">Moneda</label>
+          <select id="inp-moneda">
+            <option>COP</option>
+            <option>USD</option>
+            <option>EUR</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-footer">
+        <button class="btn btn-primary" id="btn-to-upload">Continuar</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     PANTALLA 3: CARGA DE ARCHIVOS
+============================================================ -->
+<section id="screen-upload" class="screen">
+  <div class="wrap">
+    <div class="step-header">
+      <button class="step-back" id="back-to-company">← Volver</button>
+      <div class="stepper">
+        <div class="stepper-item done" data-step="1"><span class="stepper-dot">✓</span><span class="label-text">Datos de la empresa</span></div>
+        <div class="stepper-line"></div>
+        <div class="stepper-item active" data-step="2"><span class="stepper-dot">2</span><span class="label-text">Cargar archivos</span></div>
+        <div class="stepper-line"></div>
+        <div class="stepper-item" data-step="3"><span class="stepper-dot">3</span><span class="label-text">Diagnóstico</span></div>
+      </div>
+      <h2 style="font-size:20px; margin-bottom:6px;">Carga tus estados financieros</h2>
+      <p style="color:var(--gray-500); font-size:14px; margin-bottom:30px;">Aceptamos archivos de Excel (.xlsx). Tus datos se procesan de forma segura.</p>
+    </div>
+
+    <div class="upload-grid">
+      <div class="dropzone" id="dz-balance">
+        <div class="dropzone-icon">📄</div>
+        <h3>Balance General</h3>
+        <p>Carga el archivo Excel con el Estado de Situación Financiera.</p>
+        <button class="btn btn-secondary btn-sm dz-cta" type="button">Seleccionar archivo</button>
+        <input type="file" accept=".xlsx,.xls" style="display:none" id="file-balance">
+        <div class="file-info">
+          <span class="file-info-icon">✓</span>
+          <div>
+            <span class="file-info-name">balance_general.xlsx</span>
+            <span class="file-info-meta">128 KB · Archivo cargado</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dropzone" id="dz-pyg">
+        <div class="dropzone-icon">📄</div>
+        <h3>Estado de Resultados</h3>
+        <p>Carga el archivo Excel con el P&amp;G.</p>
+        <button class="btn btn-secondary btn-sm dz-cta" type="button">Seleccionar archivo</button>
+        <input type="file" accept=".xlsx,.xls" style="display:none" id="file-pyg">
+        <div class="file-info">
+          <span class="file-info-icon">✓</span>
+          <div>
+            <span class="file-info-name">estado_resultados.xlsx</span>
+            <span class="file-info-meta">96 KB · Archivo cargado</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="upload-actions">
+      <button class="demo-link" id="btn-demo">✨ Usar datos de demostración</button>
+      <button class="btn btn-primary" id="btn-generate" disabled>Generar diagnóstico</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     PANTALLA 4: PROCESAMIENTO
+============================================================ -->
+<section id="screen-processing" class="screen">
+  <div class="processing-wrap">
+    <div class="spinner"></div>
+    <h2 id="proc-title">Analizando información financiera...</h2>
+    <p class="sub">Esto tomará solo unos segundos.</p>
+    <div class="checklist" id="checklist">
+      <div class="checklist-item" data-idx="0"><span class="check-circle">✓</span>Validando estados financieros</div>
+      <div class="checklist-item" data-idx="1"><span class="check-circle">✓</span>Analizando estructura financiera</div>
+      <div class="checklist-item" data-idx="2"><span class="check-circle">✓</span>Calculando indicadores</div>
+      <div class="checklist-item" data-idx="3"><span class="check-circle">✓</span>Evaluando rentabilidad</div>
+      <div class="checklist-item" data-idx="4"><span class="check-circle">✓</span>Analizando liquidez</div>
+      <div class="checklist-item" data-idx="5"><span class="check-circle">✓</span>Analizando endeudamiento</div>
+      <div class="checklist-item" data-idx="6"><span class="check-circle">✓</span>Analizando capital de trabajo</div>
+      <div class="checklist-item" data-idx="7"><span class="check-circle">✓</span>Generando diagnóstico</div>
+    </div>
+    <div class="proc-progress"><div class="proc-progress-bar" id="proc-bar"></div></div>
+  </div>
+</section>
+
+<!-- ============================================================
+     PANTALLA 5: DASHBOARD
+============================================================ -->
+<section id="screen-dashboard" class="screen">
+  <div class="mobile-topbar">
+    <div class="brand" style="color:#fff;"><span class="brand-mark">FD</span> Diagnóstico</div>
+    <button id="btn-menu-toggle">☰ Menú</button>
+  </div>
+  <div class="dash-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand"><span class="brand-mark">FD</span> Finanza Diagnóstico</div>
+      <div class="sidebar-company">
+        <div class="name" id="sc-company">Empresa Demo S.A.S.</div>
+        <div class="meta" id="sc-meta">Comercio · Ene - Dic 2026</div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#sec-resumen" class="active"><span class="sidebar-icon">◆</span>Resumen ejecutivo</a>
+        <a href="#sec-indicadores"><span class="sidebar-icon">▤</span>Indicadores</a>
+        <a href="#sec-graficos"><span class="sidebar-icon">▦</span>Gráficos</a>
+        <a href="#sec-analisis"><span class="sidebar-icon">◈</span>Análisis gerencial</a>
+        <a href="#sec-fortalezas"><span class="sidebar-icon">＋</span>Fortalezas</a>
+        <a href="#sec-alertas"><span class="sidebar-icon">！</span>Alertas</a>
+        <a href="#sec-recomendaciones"><span class="sidebar-icon">→</span>Recomendaciones</a>
+        <a href="#sec-semaforo"><span class="sidebar-icon">●</span>Semáforo</a>
+        <a href="#sec-score"><span class="sidebar-icon">◎</span>Score financiero</a>
+        <a href="#sec-conclusion"><span class="sidebar-icon">▣</span>Conclusión</a>
+        <a href="#sec-servicios"><span class="sidebar-icon">✦</span>Servicios</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="sidebar-reset" id="btn-reset">↺ Nuevo diagnóstico</button>
+      </div>
+    </aside>
+
+    <main class="dash-main">
+      <div class="dash-header">
+        <div>
+          <h1>Diagnóstico Financiero</h1>
+          <div class="meta">Empresa: <b id="dh-company">Empresa Demo S.A.S.</b> · Periodo: <b id="dh-periodo">Enero - Diciembre 2026</b></div>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="btn-download">⬇ Exportar informe (próximamente)</button>
+      </div>
+
+      <!-- RESUMEN -->
+      <section class="dsection" id="sec-resumen">
+        <div class="dsection-head">
+          <h2>Salud financiera</h2>
+          <p>Puntuación general demostrativa, calculada a partir de los indicadores de liquidez, rentabilidad, endeudamiento, gestión y crecimiento.</p>
+        </div>
+        <div class="card summary-card">
+          <div class="ring-wrap">
+            <svg width="180" height="180" viewBox="0 0 180 180">
+              <circle class="ring-bg" cx="90" cy="90" r="78"></circle>
+              <circle class="ring-fg" id="ring-fg" cx="90" cy="90" r="78" stroke-dasharray="490" stroke-dashoffset="490"></circle>
+            </svg>
+            <div class="ring-center">
+              <div class="ring-score" id="ring-score">0<span>/100</span></div>
+              <div class="ring-label" id="ring-cat">Calculando…</div>
+            </div>
+          </div>
+          <div class="summary-text">
+            <h3>Resumen ejecutivo</h3>
+            <p id="txt-resumen-ejecutivo">Cargando resumen...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- INDICADORES -->
+      <section class="dsection" id="sec-indicadores">
+        <div class="dsection-head">
+          <h2>Indicadores financieros</h2>
+          <p>Calculados directamente a partir del Balance General y el Estado de Resultados cargados.</p>
+        </div>
+
+        <div class="ind-category">
+          <h3>💧 Liquidez</h3>
+          <div class="ind-grid" id="grid-liquidez"></div>
+        </div>
+        <div class="ind-category">
+          <h3>📈 Rentabilidad</h3>
+          <div class="ind-grid" id="grid-rentabilidad"></div>
+        </div>
+        <div class="ind-category">
+          <h3>🏦 Endeudamiento</h3>
+          <div class="ind-grid" id="grid-endeudamiento"></div>
+        </div>
+        <div class="ind-category">
+          <h3>🔄 Gestión</h3>
+          <div class="ind-grid" id="grid-gestion"></div>
+        </div>
+      </section>
+
+      <!-- GRAFICOS -->
+      <section class="dsection" id="sec-graficos">
+        <div class="dsection-head">
+          <h2>Evolución y estructura</h2>
+          <p>Comportamiento histórico de ingresos y utilidad, y composición del balance.</p>
+        </div>
+        <div class="chart-grid">
+          <div class="card chart-card">
+            <h3>Evolución de ingresos</h3>
+            <p class="chart-note">Últimos 5 periodos, en millones de COP.</p>
+            <canvas id="chart-ingresos"></canvas>
+          </div>
+          <div class="card chart-card">
+            <h3>Evolución de utilidad neta</h3>
+            <p class="chart-note">Últimos 5 periodos, en millones de COP.</p>
+            <canvas id="chart-utilidad"></canvas>
+          </div>
+          <div class="card chart-card">
+            <h3>Estructura financiera</h3>
+            <p class="chart-note">Tamaño relativo de activos, pasivos y patrimonio.</p>
+            <canvas id="chart-estructura"></canvas>
+          </div>
+          <div class="card chart-card">
+            <h3>Distribución de gastos operacionales</h3>
+            <p class="chart-note">Composición del gasto operacional del periodo.</p>
+            <canvas id="chart-gastos"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- ANALISIS GERENCIAL -->
+      <section class="dsection" id="sec-analisis">
+        <div class="dsection-head">
+          <h2>¿Qué nos dicen los números?</h2>
+          <p>Lectura automática generada por el motor de reglas financieras a partir de los indicadores calculados.</p>
+        </div>
+        <div class="gerencial-lead" id="txt-analisis-general"></div>
+        <div class="analysis-grid" id="grid-analisis"></div>
+      </section>
+
+      <!-- FORTALEZAS -->
+      <section class="dsection" id="sec-fortalezas">
+        <div class="dsection-head">
+          <h2>Principales fortalezas</h2>
+          <p>Aspectos en los que la empresa muestra un desempeño sólido.</p>
+        </div>
+        <div class="flag-list" id="list-fortalezas"></div>
+      </section>
+
+      <!-- ALERTAS -->
+      <section class="dsection" id="sec-alertas">
+        <div class="dsection-head">
+          <h2>Alertas financieras</h2>
+          <p>Señales que requieren atención en el corto o mediano plazo.</p>
+        </div>
+        <div class="flag-list" id="list-alertas"></div>
+      </section>
+
+      <!-- RECOMENDACIONES -->
+      <section class="dsection" id="sec-recomendaciones">
+        <div class="dsection-head">
+          <h2>Recomendaciones prioritarias</h2>
+          <p>Acciones sugeridas, ordenadas por impacto potencial sobre la salud financiera.</p>
+        </div>
+        <div class="reco-list" id="list-recomendaciones"></div>
+      </section>
+
+      <!-- SEMAFORO -->
+      <section class="dsection" id="sec-semaforo">
+        <div class="dsection-head">
+          <h2>Semáforo financiero</h2>
+          <p>Estado general de cada dimensión evaluada en el diagnóstico.</p>
+        </div>
+        <div class="semaforo-grid" id="grid-semaforo"></div>
+      </section>
+
+      <!-- SCORE -->
+      <section class="dsection" id="sec-score">
+        <div class="dsection-head">
+          <h2>Composición del score financiero</h2>
+          <p>El puntaje general se construye ponderando cinco dimensiones.</p>
+        </div>
+        <div class="card score-detail">
+          <div>
+            <div class="ring-wrap" style="width:200px; height:200px;">
+              <svg width="200" height="200" viewBox="0 0 200 200">
+                <circle class="ring-bg" cx="100" cy="100" r="86"></circle>
+                <circle class="ring-fg" id="ring-fg-2" cx="100" cy="100" r="86" stroke-dasharray="540" stroke-dashoffset="540"></circle>
+              </svg>
+              <div class="ring-center">
+                <div class="ring-score" id="ring-score-2">0<span>/100</span></div>
+                <div class="ring-label">Salud financiera</div>
+              </div>
+            </div>
+            <p class="score-explain" id="txt-score-explain">Cargando explicación...</p>
+          </div>
+          <div id="score-breakdown"></div>
+        </div>
+      </section>
+
+      <!-- CONCLUSION -->
+      <section class="dsection" id="sec-conclusion">
+        <div class="dsection-head">
+          <h2>Conclusión del diagnóstico</h2>
+        </div>
+        <div class="conclusion-card" style="border-radius:22px;">
+          <h2>Conclusión ejecutiva</h2>
+          <p id="txt-conclusion">Cargando conclusión...</p>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section class="dsection" id="sec-cta">
+        <div class="cta-card">
+          <h2>¿Quieres llevar este análisis al siguiente nivel?</h2>
+          <p>Este diagnóstico identifica las principales señales financieras de tu empresa. Nuestro equipo puede ayudarte a convertir estos hallazgos en un plan financiero concreto.</p>
+          <div class="cta-buttons">
+            <button class="btn btn-secondary" id="btn-cta-asesoria">Solicitar asesoría</button>
+            <button class="btn btn-outline" id="btn-cta-servicios">Conocer nuestros servicios</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SERVICIOS -->
+      <section class="dsection" id="sec-servicios" style="margin-bottom:20px;">
+        <div class="dsection-head">
+          <h2>Portafolio de servicios</h2>
+          <p>Así te acompañamos después del diagnóstico inicial.</p>
+        </div>
+        <div class="services-grid">
+          <div class="card service-card"><div class="service-icon">🗺️</div><h3>Planeación financiera</h3><p>Presupuestos, proyecciones y escenarios.</p></div>
+          <div class="card service-card"><div class="service-icon">💵</div><h3>Flujo de caja</h3><p>Proyección y control de liquidez.</p></div>
+          <div class="card service-card"><div class="service-icon">📋</div><h3>Control financiero</h3><p>Indicadores, seguimiento y análisis de resultados.</p></div>
+          <div class="card service-card"><div class="service-icon">📈</div><h3>Rentabilidad</h3><p>Análisis de márgenes, costos y rentabilidad.</p></div>
+          <div class="card service-card"><div class="service-icon">🔄</div><h3>Capital de trabajo</h3><p>Optimización de cartera, inventarios y proveedores.</p></div>
+          <div class="card service-card"><div class="service-icon">🤝</div><h3>Acompañamiento financiero</h3><p>Seguimiento periódico para la toma de decisiones.</p></div>
+        </div>
+      </section>
+
+      <div class="footer-note">Este informe es un diagnóstico automatizado con fines demostrativos y no constituye asesoría financiera formal.</div>
+    </main>
+  </div>
+</section>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <div class="modal-icon" id="modal-icon">🚀</div>
+    <h3 id="modal-title">Muy pronto</h3>
+    <p id="modal-text">Esta función estará disponible próximamente.</p>
+    <button class="btn btn-primary" id="modal-close" style="width:100%;">Entendido</button>
+  </div>
+</div>
+
+<!-- MODAL EXPORTAR INFORME -->
+<div class="modal-overlay" id="modal-export">
+  <div class="modal-box" style="max-width:440px; text-align:left;">
+    <div class="modal-icon">📧</div>
+    <h3 style="margin-bottom:8px;">Recibe tu informe en PDF</h3>
+    <p style="margin-bottom:22px;">Déjanos tus datos y te enviaremos el informe completo de tu diagnóstico financiero a tu correo.</p>
+
+    <div class="form-row">
+      <label for="exp-nombre">Nombre completo</label>
+      <input type="text" id="exp-nombre" placeholder="Tu nombre">
+    </div>
+    <div class="form-row">
+      <label for="exp-correo">Correo electrónico</label>
+      <input type="email" id="exp-correo" placeholder="tucorreo@empresa.com">
+    </div>
+    <div class="form-row">
+      <label for="exp-empresa">Nombre de la empresa</label>
+      <input type="text" id="exp-empresa" placeholder="Nombre de tu empresa">
+    </div>
+    <p id="exp-error" style="display:none; color:var(--red-600); font-size:13px; margin:-8px 0 16px;"></p>
+
+    <div style="display:flex; gap:10px;">
+      <button class="btn btn-secondary" id="exp-cancel" style="flex:1;">Cancelar</button>
+      <button class="btn btn-primary" id="exp-submit" style="flex:1;">Enviar informe</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   1. DATOS DE ENTRADA
+   En una versión real, este objeto se construye a partir del parser
+   de Excel (Balance + P&G). Aquí se simula con datos demostrativos
+   de una empresa colombiana del sector Comercio, internamente
+   consistentes (Activos = Pasivos + Patrimonio).
+   ===================================================================== */
+const demoRawData = {
+  periodos: ['2022','2023','2024','2025','2026'],
+  ingresosHistoricos: [2420, 2610, 2790, 2960, 3180],
+  utilidadNetaHistorica: [58, 74, 96, 112, 138],
+  balance:{
+    activoCorriente:{ efectivo:140, cartera:410, inventarios:320, otros:60 },
+    activoNoCorriente:{ ppe:780, otros:140 },
+    pasivoCorriente:{ proveedores:260, obligacionesFinancierasCP:180, otros:210 },
+    pasivoNoCorriente:{ obligacionesFinancierasLP:380, otros:120 }
+  },
+  pyg:{
+    ingresos:3180,
+    costoVentas:2099,
+    gastosOperacionales:{ personal:320, arrendamientos:120, mercadeo:95, logistica:150, otros:110 },
+    gastosFinancieros:89,
+    impuestos:59
+  }
+};
+
+/* =====================================================================
+   2. PROCESAMIENTO FINANCIERO (normalización de totales)
+   ===================================================================== */
+function buildFinancialModel(raw){
+  const ac = raw.balance.activoCorriente;
+  const anc = raw.balance.activoNoCorriente;
+  const pc = raw.balance.pasivoCorriente;
+  const pnc = raw.balance.pasivoNoCorriente;
+
+  const totalActivoCorriente = ac.efectivo + ac.cartera + ac.inventarios + ac.otros;
+  const totalActivoNoCorriente = anc.ppe + anc.otros;
+  const totalActivos = totalActivoCorriente + totalActivoNoCorriente;
+
+  const totalPasivoCorriente = pc.proveedores + pc.obligacionesFinancierasCP + pc.otros;
+  const totalPasivoNoCorriente = pnc.obligacionesFinancierasLP + pnc.otros;
+  const totalPasivos = totalPasivoCorriente + totalPasivoNoCorriente;
+
+  const totalPatrimonio = totalActivos - totalPasivos;
+
+  const gastosOp = raw.pyg.gastosOperacionales;
+  const totalGastosOperacionales = Object.values(gastosOp).reduce((a,b)=>a+b,0);
+
+  const utilidadBruta = raw.pyg.ingresos - raw.pyg.costoVentas;
+  const utilidadOperacional = utilidadBruta - totalGastosOperacionales;
+  const utilidadAntesImpuestos = utilidadOperacional - raw.pyg.gastosFinancieros;
+  const utilidadNeta = utilidadAntesImpuestos - raw.pyg.impuestos;
+
+  return {
+    ac, anc, pc, pnc,
+    totalActivoCorriente, totalActivoNoCorriente, totalActivos,
+    totalPasivoCorriente, totalPasivoNoCorriente, totalPasivos, totalPatrimonio,
+    ingresos: raw.pyg.ingresos,
+    costoVentas: raw.pyg.costoVentas,
+    utilidadBruta, totalGastosOperacionales, gastosOp,
+    utilidadOperacional, gastosFinancieros: raw.pyg.gastosFinancieros,
+    utilidadAntesImpuestos, impuestos: raw.pyg.impuestos, utilidadNeta,
+    ingresosHistoricos: raw.ingresosHistoricos, utilidadNetaHistorica: raw.utilidadNetaHistorica,
+    periodos: raw.periodos
+  };
+}
+
+/* =====================================================================
+   3. CALCULO DE INDICADORES — una función independiente por indicador,
+   para poder sustituir fácilmente la fuente de datos en el futuro.
+   ===================================================================== */
+function calculateCurrentRatio(m){ return m.totalActivoCorriente / m.totalPasivoCorriente; }
+function calculateQuickRatio(m){ return (m.totalActivoCorriente - m.ac.inventarios) / m.totalPasivoCorriente; }
+function calculateWorkingCapital(m){ return m.totalActivoCorriente - m.totalPasivoCorriente; }
+function calculateGrossMargin(m){ return (m.utilidadBruta / m.ingresos) * 100; }
+function calculateOperatingMargin(m){ return (m.utilidadOperacional / m.ingresos) * 100; }
+function calculateNetMargin(m){ return (m.utilidadNeta / m.ingresos) * 100; }
+function calculateROA(m){ return (m.utilidadNeta / m.totalActivos) * 100; }
+function calculateROE(m){ return (m.utilidadNeta / m.totalPatrimonio) * 100; }
+function calculateDebtRatio(m){ return (m.totalPasivos / m.totalActivos) * 100; }
+function calculateFinancialDebtRatio(m){
+  const deuda = m.pc.obligacionesFinancierasCP + m.pnc.obligacionesFinancierasLP;
+  return (deuda / m.totalActivos) * 100;
+}
+function calculateInterestCoverage(m){ return m.utilidadOperacional / m.gastosFinancieros; }
+function calculateDSO(m){ return (m.ac.cartera / m.ingresos) * 365; }
+function calculateDIO(m){ return (m.ac.inventarios / m.costoVentas) * 365; }
+function calculateDPO(m){ return (m.pc.proveedores / m.costoVentas) * 365; }
+function calculateCashConversionCycle(m){ return calculateDSO(m) + calculateDIO(m) - calculateDPO(m); }
+function calculateRevenueGrowth(m){
+  const h = m.ingresosHistoricos;
+  return ((h[h.length-1] - h[h.length-2]) / h[h.length-2]) * 100;
+}
+
+function computeIndicators(m){
+  return {
+    currentRatio: calculateCurrentRatio(m),
+    quickRatio: calculateQuickRatio(m),
+    workingCapital: calculateWorkingCapital(m),
+    grossMargin: calculateGrossMargin(m),
+    operatingMargin: calculateOperatingMargin(m),
+    netMargin: calculateNetMargin(m),
+    roa: calculateROA(m),
+    roe: calculateROE(m),
+    debtRatio: calculateDebtRatio(m),
+    financialDebtRatio: calculateFinancialDebtRatio(m),
+    interestCoverage: calculateInterestCoverage(m),
+    dso: calculateDSO(m),
+    dio: calculateDIO(m),
+    dpo: calculateDPO(m),
+    ccc: calculateCashConversionCycle(m),
+    revenueGrowth: calculateRevenueGrowth(m)
+  };
+}
+
+/* =====================================================================
+   4. MOTOR DE REGLAS — interpola cada métrica a un puntaje 0-100
+   según umbrales (malo / medio / bueno) y agrupa por categoría.
+   ===================================================================== */
+function scoreFromRange(value, bad, mid, good){
+  // higher-is-better cuando good > mid > bad; lower-is-better si good < mid < bad
+  const higherBetter = good > mid;
+  if(higherBetter){
+    if(value <= bad) return 0;
+    if(value >= good) return 100;
+    if(value <= mid) return ((value-bad)/(mid-bad))*50;
+    return 50 + ((value-mid)/(good-mid))*50;
+  } else {
+    if(value >= bad) return 0;
+    if(value <= good) return 100;
+    if(value >= mid) return ((bad-value)/(bad-mid))*50;
+    return 50 + ((mid-value)/(mid-good))*50;
+  }
+}
+
+function statusFromScore(score, isGestion){
+  if(score >= 65) return {label:'Saludable', tier:'green'};
+  if(score >= 40) return {label:'Atención', tier:'yellow'};
+  return {label: isGestion ? 'Prioridad' : 'Crítico', tier:'red'};
+}
+
+function computeHealthScore(ind){
+  const currentRatioScore = scoreFromRange(ind.currentRatio, 0.8, 1.2, 1.8);
+  const quickRatioScore = scoreFromRange(ind.quickRatio, 0.5, 0.9, 1.3);
+  const liquidezScore = (currentRatioScore + quickRatioScore) / 2;
+
+  const grossScore = scoreFromRange(ind.grossMargin, 15, 25, 40);
+  const opScore = scoreFromRange(ind.operatingMargin, 2, 7, 15);
+  const netScore = scoreFromRange(ind.netMargin, 1, 4, 10);
+  const roaScore = scoreFromRange(ind.roa, 2, 6, 12);
+  const roeScore = scoreFromRange(ind.roe, 5, 12, 22);
+  const rentabilidadScore = (grossScore + opScore + netScore + roaScore + roeScore) / 5;
+
+  const debtScore = scoreFromRange(ind.debtRatio, 80, 55, 35);
+  const finDebtScore = scoreFromRange(ind.financialDebtRatio, 45, 30, 15);
+  const coverageScore = scoreFromRange(ind.interestCoverage, 1.2, 2.5, 5);
+  const endeudamientoScore = (debtScore + finDebtScore + coverageScore) / 3;
+
+  const dsoScore = scoreFromRange(ind.dso, 90, 55, 30);
+  const dioScore = scoreFromRange(ind.dio, 90, 55, 30);
+  const cccScore = scoreFromRange(ind.ccc, 100, 60, 30);
+  const gestionScore = (dsoScore + dioScore + cccScore) / 3;
+
+  const crecimientoScore = scoreFromRange(ind.revenueGrowth, 0, 5, 12);
+
+  const weights = {liquidez:0.20, rentabilidad:0.25, endeudamiento:0.20, gestion:0.20, crecimiento:0.15};
+  const total = liquidezScore*weights.liquidez + rentabilidadScore*weights.rentabilidad +
+                endeudamientoScore*weights.endeudamiento + gestionScore*weights.gestion +
+                crecimientoScore*weights.crecimiento;
+
+  return {
+    total: Math.round(total),
+    categories:{
+      liquidez:{score:liquidezScore, weight:weights.liquidez, ...statusFromScore(liquidezScore)},
+      rentabilidad:{score:rentabilidadScore, weight:weights.rentabilidad, ...statusFromScore(rentabilidadScore)},
+      endeudamiento:{score:endeudamientoScore, weight:weights.endeudamiento, ...statusFromScore(endeudamientoScore)},
+      gestion:{score:gestionScore, weight:weights.gestion, ...statusFromScore(gestionScore, true)},
+      crecimiento:{score:crecimientoScore, weight:weights.crecimiento, ...statusFromScore(crecimientoScore)}
+    }
+  };
+}
+
+function healthCategoryLabel(total){
+  if(total >= 75) return 'Salud financiera sólida';
+  if(total >= 55) return 'Salud financiera moderada';
+  if(total >= 40) return 'Salud financiera con alertas importantes';
+  return 'Salud financiera crítica';
+}
+
+/* =====================================================================
+   5. GENERACION DEL DIAGNOSTICO (simulada)
+   Esta función recibe indicadores + score y devuelve el diagnóstico
+   completo. Está aislada a propósito: en una versión futura, el mismo
+   contrato de entrada/salida podría ser resuelto por una llamada a una
+   API de IA (ver comentario al final del archivo).
+   ===================================================================== */
+function generateFinancialAnalysis(m, ind, health){
+  const f2 = (n)=> n.toLocaleString('es-CO', {maximumFractionDigits:1, minimumFractionDigits:1});
+  const f0 = (n)=> Math.round(n).toLocaleString('es-CO');
+  const cop = (n)=> '$' + f0(n) + ' MM';
+
+  const resumenEjecutivo = `Durante el periodo analizado, la empresa presenta una posición de liquidez ${health.categories.liquidez.tier==='green'?'sólida':'ajustada'} y una rentabilidad ${health.categories.rentabilidad.tier==='green'?'positiva y saludable':'positiva'}. Sin embargo, se identifican oportunidades de mejora relacionadas con la gestión de cartera, el ciclo de efectivo y el crecimiento de los gastos operacionales.`;
+
+  const analisisGeneral = `Los ingresos presentan una evolución positiva durante el periodo analizado (crecimiento de ${f2(ind.revenueGrowth)}% frente al periodo anterior), pero el nivel de gastos operacionales ha limitado la expansión del margen operacional (${f2(ind.operatingMargin)}%). La empresa mantiene una rentabilidad neta positiva de ${f2(ind.netMargin)}%, aunque existe oportunidad de mejorar la conversión de ventas en utilidad.`;
+
+  const categorias = [
+    {
+      key:'liquidez', name:'Liquidez', status: health.categories.liquidez.label, tier: health.categories.liquidez.tier,
+      text:`La razón corriente de ${ind.currentRatio.toFixed(2)}x indica que la empresa cuenta con $${ind.currentRatio.toFixed(2)} en activos corrientes por cada $1 de obligaciones de corto plazo. ${ind.quickRatio < 1 ? 'Sin embargo, la prueba ácida de '+ind.quickRatio.toFixed(2)+'x, inferior a 1x, indica dependencia parcial de la realización de inventarios.' : 'La prueba ácida de '+ind.quickRatio.toFixed(2)+'x confirma una cobertura adecuada incluso sin considerar inventarios.'}`
+    },
+    {
+      key:'rentabilidad', name:'Rentabilidad', status: health.categories.rentabilidad.label, tier: health.categories.rentabilidad.tier,
+      text:`El margen neto de ${f2(ind.netMargin)}% es positivo y refleja capacidad de generación de utilidad, con un ROE de ${f2(ind.roe)}% y un ROA de ${f2(ind.roa)}%, aunque existe espacio para mejorar la eficiencia operacional (margen operacional de ${f2(ind.operatingMargin)}%).`
+    },
+    {
+      key:'endeudamiento', name:'Endeudamiento', status: health.categories.endeudamiento.label, tier: health.categories.endeudamiento.tier,
+      text:`El nivel de endeudamiento de ${f2(ind.debtRatio)}% representa una proporción significativa de la estructura financiera y requiere seguimiento para evitar presión sobre el flujo de caja. La cobertura de intereses de ${ind.interestCoverage.toFixed(1)}x indica que la operación aún cubre de forma razonable los gastos financieros.`
+    },
+    {
+      key:'gestion', name:'Capital de trabajo', status: health.categories.gestion.label, tier: health.categories.gestion.tier,
+      text:`El ciclo de conversión de efectivo de ${Math.round(ind.ccc)} días (cartera: ${Math.round(ind.dso)} días, inventarios: ${Math.round(ind.dio)} días, proveedores: ${Math.round(ind.dpo)} días) muestra una oportunidad importante para optimizar cartera, inventarios y condiciones de proveedores.`
+    }
+  ];
+
+  const fortalezas = [];
+  if(ind.netMargin > 0) fortalezas.push({icon:'🟢', title:'Rentabilidad positiva', text:`La empresa genera utilidad neta de ${cop(m.utilidadNeta)} y mantiene márgenes positivos en toda la operación.`});
+  if(ind.interestCoverage >= 2) fortalezas.push({icon:'🟢', title:'Cobertura de intereses adecuada', text:`La operación genera ${ind.interestCoverage.toFixed(1)}x de utilidad operacional frente a los gastos financieros, capacidad suficiente para atenderlos.`});
+  if(ind.revenueGrowth > 3) fortalezas.push({icon:'🟢', title:'Crecimiento de ingresos', text:`Las ventas muestran una tendencia positiva, con un crecimiento de ${f2(ind.revenueGrowth)}% durante el último periodo.`});
+  if(ind.grossMargin >= 30) fortalezas.push({icon:'🟢', title:'Margen bruto competitivo', text:`El margen bruto de ${f2(ind.grossMargin)}% refleja una estructura de costos saludable frente a los ingresos.`});
+
+  const alertas = [];
+  if(ind.dso > 45) alertas.push({icon:'🟡', tier:'yellow', title:'Días de cartera elevados', text:`La cartera se recupera en ${Math.round(ind.dso)} días en promedio, lo que puede estar presionando la liquidez.`});
+  const gastoCrecPct = ((m.totalGastosOperacionales / m.ingresos) * 100);
+  alertas.push({icon:'🟡', tier:'yellow', title:'Crecimiento de gastos operacionales', text:`Los gastos operacionales representan ${f2(gastoCrecPct)}% de los ingresos; conviene monitorear su ritmo de crecimiento frente a las ventas.`});
+  if(ind.ccc > 45) alertas.push({icon:'🔴', tier:'red', title:'Ciclo de efectivo', text:`El ciclo de conversión de efectivo de ${Math.round(ind.ccc)} días representa una oportunidad crítica de optimización de capital de trabajo.`});
+  if(ind.debtRatio > 55) alertas.push({icon:'🟡', tier:'yellow', title:'Nivel de endeudamiento', text:`El endeudamiento total de ${f2(ind.debtRatio)}% sobre los activos requiere seguimiento cercano.`});
+
+  const recomendaciones = [
+    {
+      title:'Optimizar cartera', objetivo:'Reducir los días de cartera y acelerar la conversión de ventas en efectivo.',
+      acciones:['Revisar cartera vencida','Clasificar clientes por comportamiento de pago','Definir políticas de crédito','Establecer seguimiento semanal'],
+      impacto:'Mejora de liquidez y reducción de necesidad de financiación.'
+    },
+    {
+      title:'Controlar gastos', objetivo:'Mejorar el margen operacional.',
+      acciones:['Analizar gastos por centro de costo','Identificar gastos de mayor crecimiento','Separar gastos estratégicos de gastos discrecionales','Establecer presupuesto y seguimiento mensual'],
+      impacto:'Incremento del margen operacional y mayor generación de caja.'
+    },
+    {
+      title:'Mejorar planificación financiera', objetivo:'Anticipar necesidades de caja.',
+      acciones:['Implementar flujo de caja proyectado','Establecer presupuesto mensual','Crear indicadores financieros de seguimiento','Realizar seguimiento mensual de resultados'],
+      impacto:'Mayor anticipación frente a necesidades de liquidez.'
+    }
+  ];
+
+  const conclusion = `La empresa presenta una posición financiera ${health.total>=55?'estable':'ajustada'} y mantiene capacidad de generación de utilidad. Las principales oportunidades se concentran en la administración del capital de trabajo, la recuperación de cartera y el control de los gastos operacionales.`;
+
+  const scoreExplain = `El resultado indica una situación financiera ${healthCategoryLabel(health.total).toLowerCase()}, aunque existen oportunidades importantes relacionadas con capital de trabajo y eficiencia operacional.`;
+
+  return { resumenEjecutivo, analisisGeneral, categorias, fortalezas, alertas, recomendaciones, conclusion, scoreExplain };
+}
+
+/* =====================================================================
+   6. ESTADO DE LA APLICACION Y NAVEGACION
+   ===================================================================== */
+const state = { useDemo:false, files:{balance:null, pyg:null} };
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
+}
+
+document.getElementById('btn-start').addEventListener('click', ()=> showScreen('screen-company'));
+document.getElementById('btn-nav-start').addEventListener('click', ()=> showScreen('screen-company'));
+document.getElementById('back-to-landing').addEventListener('click', ()=> showScreen('screen-landing'));
+document.getElementById('back-to-company').addEventListener('click', ()=> showScreen('screen-company'));
+document.getElementById('btn-to-upload').addEventListener('click', ()=> showScreen('screen-upload'));
+
+/* ---- Carga de archivos (drag & drop simulado) ---- */
+function setupDropzone(zoneId, inputId, key){
+  const zone = document.getElementById(zoneId);
+  const input = document.getElementById(inputId);
+  zone.querySelector('.dz-cta').addEventListener('click', ()=> input.click());
+  zone.addEventListener('click', (e)=>{ if(e.target === zone) input.click(); });
+  input.addEventListener('change', ()=>{
+    if(input.files && input.files[0]) markLoaded(zone, input.files[0].name, input.files[0].size, key);
+  });
+  ['dragover','dragenter'].forEach(evt=> zone.addEventListener(evt, (e)=>{ e.preventDefault(); zone.classList.add('drag-over'); }));
+  ['dragleave','drop'].forEach(evt=> zone.addEventListener(evt, (e)=>{ e.preventDefault(); zone.classList.remove('drag-over'); }));
+  zone.addEventListener('drop', (e)=>{
+    const file = e.dataTransfer.files[0];
+    if(file) markLoaded(zone, file.name, file.size, key);
+  });
+}
+function markLoaded(zone, name, size, key){
+  zone.classList.add('is-loaded');
+  zone.querySelector('.file-info-name').textContent = name;
+  zone.querySelector('.file-info-meta').textContent = (size ? Math.max(1,Math.round(size/1024)) + ' KB · ' : '') + 'Archivo cargado';
+  state.files[key] = name;
+  checkReadyToGenerate();
+}
+setupDropzone('dz-balance','file-balance','balance');
+setupDropzone('dz-pyg','file-pyg','pyg');
+
+function checkReadyToGenerate(){
+  const ready = state.useDemo || (state.files.balance && state.files.pyg);
+  document.getElementById('btn-generate').disabled = !ready;
+}
+
+document.getElementById('btn-demo').addEventListener('click', ()=>{
+  state.useDemo = true;
+  markLoaded(document.getElementById('dz-balance'), 'balance_general_demo.xlsx', 131072, 'balance');
+  markLoaded(document.getElementById('dz-pyg'), 'estado_resultados_demo.xlsx', 98304, 'pyg');
+});
+
+document.getElementById('btn-generate').addEventListener('click', runProcessing);
+
+/* ---- Pantalla de procesamiento ---- */
+function runProcessing(){
+  showScreen('screen-processing');
+  const items = document.querySelectorAll('.checklist-item');
+  const bar = document.getElementById('proc-bar');
+  items.forEach(it=> it.classList.remove('active','done'));
+  bar.style.width = '0%';
+
+  let i = 0;
+  function step(){
+    if(i > 0) items[i-1].classList.remove('active');
+    if(i > 0) items[i-1].classList.add('done');
+    if(i < items.length){
+      items[i].classList.add('active');
+      bar.style.width = Math.round(((i+1)/items.length)*100) + '%';
+      i++;
+      setTimeout(step, 480);
+    } else {
+      setTimeout(()=>{ buildDashboard(); showScreen('screen-dashboard'); }, 400);
+    }
+  }
+  step();
+}
+
+document.getElementById('btn-reset').addEventListener('click', ()=>{
+  document.getElementById('sidebar').classList.remove('open');
+  showScreen('screen-landing');
+});
+document.getElementById('btn-menu-toggle').addEventListener('click', ()=>{
+  document.getElementById('sidebar').classList.toggle('open');
+});
+document.querySelectorAll('.sidebar-nav a').forEach(a=>{
+  a.addEventListener('click', ()=> document.getElementById('sidebar').classList.remove('open'));
+});
+
+/* ---- Modal genérico ---- */
+function openModal(icon, title, text){
+  document.getElementById('modal-icon').textContent = icon;
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-text').textContent = text;
+  document.getElementById('modal').classList.add('open');
+}
+document.getElementById('modal-close').addEventListener('click', ()=> document.getElementById('modal').classList.remove('open'));
+document.getElementById('modal').addEventListener('click', (e)=>{ if(e.target.id==='modal') e.currentTarget.classList.remove('open'); });
+
+document.getElementById('btn-cta-asesoria').addEventListener('click', ()=> openModal('📅','Solicitar asesoría','En la versión completa, este botón agendará una llamada con nuestro equipo de consultoría. Próximamente estará conectado a nuestro calendario.'));
+document.getElementById('btn-cta-servicios').addEventListener('click', ()=> document.getElementById('sec-servicios').scrollIntoView({behavior:'smooth'}));
+document.getElementById('btn-download').addEventListener('click', ()=> document.getElementById('modal-export').classList.add('open'));
+
+/* ---- Formulario de exportación (envío de PDF por correo) ---- */
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+document.getElementById('exp-cancel').addEventListener('click', ()=>{
+  document.getElementById('modal-export').classList.remove('open');
+});
+
+document.getElementById('exp-submit').addEventListener('click', async ()=>{
+  const nombre = document.getElementById('exp-nombre').value.trim();
+  const correo = document.getElementById('exp-correo').value.trim();
+  const empresa = document.getElementById('exp-empresa').value.trim();
+  const errorEl = document.getElementById('exp-error');
+  const btn = document.getElementById('exp-submit');
+
+  if(nombre.length < 2 || empresa.length < 2 || !EMAIL_REGEX.test(correo)){
+    errorEl.textContent = 'Por favor completa tu nombre, correo y empresa correctamente.';
+    errorEl.style.display = 'block';
+    return;
+  }
+  if(!lastDiagnosis){
+    errorEl.textContent = 'Aún no hay un diagnóstico calculado para exportar.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  errorEl.style.display = 'none';
+  const originalLabel = btn.textContent;
+  btn.textContent = 'Enviando...';
+  btn.disabled = true;
+
+  try{
+    const res = await fetch('/.netlify/functions/send-report', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({
+        nombre, correo, empresa,
+        periodo: lastDiagnosis.periodo,
+        moneda: lastDiagnosis.moneda,
+        reportData: lastDiagnosis
+      })
+    });
+    const data = await res.json();
+    document.getElementById('modal-export').classList.remove('open');
+    if(res.ok && data.ok){
+      openModal('✅','¡Informe enviado!', `Hemos enviado tu diagnóstico financiero en PDF a ${correo}. Revisa también la carpeta de spam por si acaso.`);
+    } else {
+      openModal('⚠️','No pudimos enviarlo', data.error || 'Ocurrió un error inesperado. Intenta de nuevo en unos minutos.');
+    }
+  } catch(err){
+    document.getElementById('modal-export').classList.remove('open');
+    openModal('⚠️','Error de conexión', 'No pudimos conectar con el servidor. Verifica tu conexión e intenta de nuevo.');
+  } finally {
+    btn.textContent = originalLabel;
+    btn.disabled = false;
+  }
+});
+
+/* =====================================================================
+   7. RENDER DEL DASHBOARD
+   ===================================================================== */
+let chartsInstances = [];
+function destroyCharts(){ chartsInstances.forEach(c=>c.destroy()); chartsInstances = []; }
+
+/* Guarda el último diagnóstico calculado, en el formato que espera el
+   backend (netlify/functions/send-report.js) para construir el PDF. */
+let lastDiagnosis = null;
+
+function buildDashboard(){
+  const company = document.getElementById('inp-company').value || 'Empresa Demo S.A.S.';
+  const sector = document.getElementById('inp-sector').value;
+  const periodo = document.getElementById('inp-periodo').value || 'Enero - Diciembre 2026';
+  const moneda = document.getElementById('inp-moneda').value;
+
+  document.getElementById('sc-company').textContent = company;
+  document.getElementById('sc-meta').textContent = sector + ' · ' + periodo;
+  document.getElementById('dh-company').textContent = company;
+  document.getElementById('dh-periodo').textContent = periodo;
+
+  const model = buildFinancialModel(demoRawData);
+  const ind = computeIndicators(model);
+  const health = computeHealthScore(ind);
+  const diag = generateFinancialAnalysis(model, ind, health);
+
+  const f2 = (n)=> n.toLocaleString('es-CO', {maximumFractionDigits:1, minimumFractionDigits:1});
+  const f0 = (n)=> Math.round(n).toLocaleString('es-CO');
+  const cop = (n)=> '$' + f0(n) + ' ' + (moneda==='COP' ? 'MM' : moneda);
+
+  // ---- Resumen / score ring ----
+  document.getElementById('txt-resumen-ejecutivo').textContent = diag.resumenEjecutivo;
+  document.getElementById('ring-cat').textContent = healthCategoryLabel(health.total);
+  animateRing('ring-fg','ring-score', health.total, 78);
+  animateRing('ring-fg-2','ring-score-2', health.total, 86);
+  document.getElementById('txt-score-explain').textContent = diag.scoreExplain;
+
+  // ---- Indicadores ----
+  const statusMeta = (tier)=> tier==='green' ? {badge:'badge-green', icon:'🟢', bg:'var(--green-100)', fg:'var(--green-600)'} :
+                              tier==='yellow' ? {badge:'badge-yellow', icon:'🟡', bg:'var(--yellow-100)', fg:'var(--yellow-700)'} :
+                              {badge:'badge-red', icon:'🔴', bg:'var(--red-100)', fg:'var(--red-600)'};
+
+  function indCard(name, value, tier, desc, tooltip){
+    const sm = statusMeta(tier);
+    return `<div class="card ind-card" data-tooltip="${tooltip}">
+      <div class="ind-card-top">
+        <div class="ind-icon" style="background:${sm.bg}; color:${sm.fg};">${sm.icon}</div>
+        <span class="badge ${sm.badge}"><span class="badge-dot"></span>${tier==='green'?'Saludable':tier==='yellow'?'Atención':'Crítico'}</span>
+      </div>
+      <div class="ind-value">${value}</div>
+      <div class="ind-name">${name}</div>
+      <div class="ind-desc">${desc}</div>
+    </div>`;
+  }
+
+  document.getElementById('grid-liquidez').innerHTML =
+    indCard('Razón corriente', ind.currentRatio.toFixed(2)+'x', statusFromScore(scoreFromRange(ind.currentRatio,0.8,1.2,1.8)).tier, 'Activos corrientes frente a pasivos corrientes.', 'Por cada $1 de deuda de corto plazo, la empresa tiene este valor en activos corrientes.') +
+    indCard('Prueba ácida', ind.quickRatio.toFixed(2)+'x', statusFromScore(scoreFromRange(ind.quickRatio,0.5,0.9,1.3)).tier, 'Liquidez inmediata, excluyendo inventarios.', 'Similar a la razón corriente, pero sin contar con la venta de inventarios.') +
+    indCard('Capital de trabajo', cop(model.totalActivoCorriente-model.totalPasivoCorriente), (model.totalActivoCorriente-model.totalPasivoCorriente)>0?'green':'red', 'Recursos disponibles tras cubrir obligaciones de corto plazo.', 'Activos corrientes menos pasivos corrientes.');
+
+  document.getElementById('grid-rentabilidad').innerHTML =
+    indCard('Margen bruto', f2(ind.grossMargin)+'%', statusFromScore(scoreFromRange(ind.grossMargin,15,25,40)).tier, 'Rentabilidad después del costo de ventas.', 'Utilidad bruta como porcentaje de los ingresos.') +
+    indCard('Margen operacional', f2(ind.operatingMargin)+'%', statusFromScore(scoreFromRange(ind.operatingMargin,2,7,15)).tier, 'Rentabilidad de la operación central del negocio.', 'Utilidad operacional como porcentaje de los ingresos.') +
+    indCard('Margen neto', f2(ind.netMargin)+'%', statusFromScore(scoreFromRange(ind.netMargin,1,4,10)).tier, 'Rentabilidad final después de todos los gastos.', 'Utilidad neta como porcentaje de los ingresos.') +
+    indCard('ROA', f2(ind.roa)+'%', statusFromScore(scoreFromRange(ind.roa,2,6,12)).tier, 'Eficiencia en el uso de los activos.', 'Utilidad neta sobre el total de activos.') +
+    indCard('ROE', f2(ind.roe)+'%', statusFromScore(scoreFromRange(ind.roe,5,12,22)).tier, 'Rentabilidad sobre el patrimonio invertido.', 'Utilidad neta sobre el patrimonio.');
+
+  document.getElementById('grid-endeudamiento').innerHTML =
+    indCard('Nivel de endeudamiento', f2(ind.debtRatio)+'%', statusFromScore(scoreFromRange(ind.debtRatio,80,55,35)).tier, 'Proporción de activos financiada con deuda.', 'Total de pasivos sobre el total de activos.') +
+    indCard('Endeudamiento financiero', f2(ind.financialDebtRatio)+'%', statusFromScore(scoreFromRange(ind.financialDebtRatio,45,30,15)).tier, 'Peso de las obligaciones financieras sobre los activos.', 'Obligaciones financieras (CP+LP) sobre el total de activos.') +
+    indCard('Cobertura de intereses', ind.interestCoverage.toFixed(1)+'x', statusFromScore(scoreFromRange(ind.interestCoverage,1.2,2.5,5)).tier, 'Capacidad de cubrir los gastos financieros con la operación.', 'Utilidad operacional sobre gastos financieros.');
+
+  document.getElementById('grid-gestion').innerHTML =
+    indCard('Días de cartera', Math.round(ind.dso)+' días', statusFromScore(scoreFromRange(ind.dso,90,55,30)).tier, 'Tiempo promedio de recuperación de cartera.', 'Cuentas por cobrar convertidas en días de ventas.') +
+    indCard('Días de inventario', Math.round(ind.dio)+' días', statusFromScore(scoreFromRange(ind.dio,90,55,30)).tier, 'Tiempo promedio en que el inventario permanece antes de venderse.', 'Inventarios convertidos en días de costo de ventas.') +
+    indCard('Días de proveedores', Math.round(ind.dpo)+' días', 'green', 'Plazo promedio para pagar a proveedores.', 'Cuentas por pagar convertidas en días de costo de ventas.') +
+    indCard('Ciclo de conversión de efectivo', Math.round(ind.ccc)+' días', statusFromScore(scoreFromRange(ind.ccc,100,60,30)).tier, 'Tiempo que tarda un peso invertido en volver a convertirse en efectivo.', 'Días de cartera + días de inventario − días de proveedores.');
+
+  // ---- Guardar diagnóstico para exportación (PDF por correo) ----
+  const indicadoresFlat = [
+    {categoria:'Liquidez', nombre:'Razón corriente', valor: ind.currentRatio.toFixed(2)+'x'},
+    {categoria:'Liquidez', nombre:'Prueba ácida', valor: ind.quickRatio.toFixed(2)+'x'},
+    {categoria:'Liquidez', nombre:'Capital de trabajo', valor: cop(model.totalActivoCorriente-model.totalPasivoCorriente)},
+    {categoria:'Rentabilidad', nombre:'Margen bruto', valor: f2(ind.grossMargin)+'%'},
+    {categoria:'Rentabilidad', nombre:'Margen operacional', valor: f2(ind.operatingMargin)+'%'},
+    {categoria:'Rentabilidad', nombre:'Margen neto', valor: f2(ind.netMargin)+'%'},
+    {categoria:'Rentabilidad', nombre:'ROA', valor: f2(ind.roa)+'%'},
+    {categoria:'Rentabilidad', nombre:'ROE', valor: f2(ind.roe)+'%'},
+    {categoria:'Endeudamiento', nombre:'Nivel de endeudamiento', valor: f2(ind.debtRatio)+'%'},
+    {categoria:'Endeudamiento', nombre:'Endeudamiento financiero', valor: f2(ind.financialDebtRatio)+'%'},
+    {categoria:'Endeudamiento', nombre:'Cobertura de intereses', valor: ind.interestCoverage.toFixed(1)+'x'},
+    {categoria:'Gestión', nombre:'Días de cartera', valor: Math.round(ind.dso)+' días'},
+    {categoria:'Gestión', nombre:'Días de inventario', valor: Math.round(ind.dio)+' días'},
+    {categoria:'Gestión', nombre:'Días de proveedores', valor: Math.round(ind.dpo)+' días'},
+    {categoria:'Gestión', nombre:'Ciclo de conversión de efectivo', valor: Math.round(ind.ccc)+' días'}
+  ];
+
+  lastDiagnosis = {
+    company, sector, periodo, moneda,
+    scoreTotal: health.total,
+    scoreLabel: healthCategoryLabel(health.total),
+    resumenEjecutivo: diag.resumenEjecutivo,
+    conclusion: diag.conclusion,
+    categorias: diag.categorias,
+    indicadores: indicadoresFlat,
+    fortalezas: diag.fortalezas,
+    alertas: diag.alertas,
+    recomendaciones: diag.recomendaciones
+  };
+
+  // ---- Análisis gerencial ----
+  document.getElementById('txt-analisis-general').textContent = diag.analisisGeneral;
+  document.getElementById('grid-analisis').innerHTML = diag.categorias.map(c=>{
+    const sm = statusMeta(c.tier);
+    return `<div class="card analysis-card">
+      <h3>${c.name} <span class="badge ${sm.badge}"><span class="badge-dot"></span>${c.status}</span></h3>
+      <p>${c.text}</p>
+    </div>`;
+  }).join('');
+
+  // ---- Fortalezas ----
+  document.getElementById('list-fortalezas').innerHTML = diag.fortalezas.map(f=>`
+    <div class="card flag-item">
+      <div class="flag-icon" style="background:var(--green-100); color:var(--green-600);">${f.icon}</div>
+      <div><h4>${f.title}</h4><p>${f.text}</p></div>
+    </div>`).join('');
+
+  // ---- Alertas ----
+  document.getElementById('list-alertas').innerHTML = diag.alertas.map(a=>{
+    const sm = statusMeta(a.tier);
+    return `<div class="card flag-item">
+      <div class="flag-icon" style="background:${sm.bg}; color:${sm.fg};">${a.icon}</div>
+      <div><h4>${a.title}</h4><p>${a.text}</p></div>
+    </div>`;
+  }).join('');
+
+  // ---- Recomendaciones ----
+  document.getElementById('list-recomendaciones').innerHTML = diag.recomendaciones.map((r,i)=>`
+    <div class="card reco-card">
+      <div class="reco-num">${String(i+1).padStart(2,'0')}</div>
+      <div>
+        <h3>${r.title}</h3>
+        <div class="reco-block"><b>Objetivo</b><p style="font-size:14px; color:var(--gray-600);">${r.objetivo}</p></div>
+        <div class="reco-block"><b>Acciones sugeridas</b><ul>${r.acciones.map(a=>`<li>${a}</li>`).join('')}</ul></div>
+        <div class="reco-impact">Impacto esperado: ${r.impacto}</div>
+      </div>
+    </div>`).join('');
+
+  // ---- Semáforo ----
+  const semaforoItems = [
+    {label:'Liquidez', cat: health.categories.liquidez},
+    {label:'Rentabilidad', cat: health.categories.rentabilidad},
+    {label:'Endeudamiento', cat: health.categories.endeudamiento},
+    {label:'Gestión de cartera', cat: health.categories.gestion},
+    {label:'Capital de trabajo', cat: health.categories.gestion}
+  ];
+  document.getElementById('grid-semaforo').innerHTML = semaforoItems.map(s=>{
+    const sm = statusMeta(s.cat.tier);
+    return `<div class="card semaforo-item">
+      <span class="badge ${sm.badge}"><span class="badge-dot"></span>${s.cat.label}</span>
+      <div class="sf-label">${s.label}</div>
+    </div>`;
+  }).join('');
+
+  // ---- Score breakdown ----
+  const catNames = {liquidez:['Liquidez','var(--blue-600)'], rentabilidad:['Rentabilidad','var(--green-500)'], endeudamiento:['Endeudamiento','var(--yellow-600)'], gestion:['Gestión','#8B5CF6'], crecimiento:['Crecimiento','#0EA5B7']};
+  document.getElementById('score-breakdown').innerHTML = Object.entries(health.categories).map(([key,c])=>{
+    const [label,color] = catNames[key];
+    return `<div class="breakdown-row">
+      <div class="breakdown-top"><span>${label}</span><span class="weight">${Math.round(c.weight*100)}% del score</span></div>
+      <div class="bd-bar"><div class="bd-bar-fill" style="width:${Math.round(c.score)}%; background:${color};"></div></div>
+    </div>`;
+  }).join('');
+
+  // ---- Conclusión ----
+  document.getElementById('txt-conclusion').textContent = diag.conclusion;
+
+  // ---- Gráficos ----
+  destroyCharts();
+  const navy = '#0A1E38', blue='#2E63E7', green='#1D9A63', yellow='#B4790A', red='#D33842', gray='#98A5B8';
+
+  chartsInstances.push(new Chart(document.getElementById('chart-ingresos'), {
+    type:'bar',
+    data:{ labels: model.periodos, datasets:[{ label:'Ingresos (MM)', data: model.ingresosHistoricos, backgroundColor: blue, borderRadius:6, maxBarThickness:42 }] },
+    options:{ responsive:true, plugins:{legend:{display:false}}, scales:{ y:{ grid:{color:'#EEF1F6'}, ticks:{callback:v=>v.toLocaleString('es-CO')} }, x:{grid:{display:false}} } }
+  }));
+
+  chartsInstances.push(new Chart(document.getElementById('chart-utilidad'), {
+    type:'line',
+    data:{ labels: model.periodos, datasets:[{ label:'Utilidad neta (MM)', data: model.utilidadNetaHistorica, borderColor: green, backgroundColor:'rgba(29,154,99,.12)', fill:true, tension:.35, pointRadius:4, pointBackgroundColor:green }] },
+    options:{ responsive:true, plugins:{legend:{display:false}}, scales:{ y:{ grid:{color:'#EEF1F6'} }, x:{grid:{display:false}} } }
+  }));
+
+  chartsInstances.push(new Chart(document.getElementById('chart-estructura'), {
+    type:'doughnut',
+    data:{ labels:['Activos','Pasivos','Patrimonio'], datasets:[{ data:[model.totalActivos, model.totalPasivos, model.totalPatrimonio], backgroundColor:[navy, red, green], borderWidth:0 }] },
+    options:{ responsive:true, plugins:{legend:{position:'bottom', labels:{boxWidth:10, font:{size:12}}}}, cutout:'62%' }
+  }));
+
+  const gastoLabels = Object.keys(model.gastosOp).map(k=> ({personal:'Personal', arrendamientos:'Arrendamientos', mercadeo:'Mercadeo', logistica:'Logística', otros:'Otros'}[k]));
+  chartsInstances.push(new Chart(document.getElementById('chart-gastos'), {
+    type:'bar',
+    data:{ labels: gastoLabels, datasets:[{ data: Object.values(model.gastosOp), backgroundColor:[blue,'#4C7CF0',yellow,'#8B5CF6',gray], borderRadius:6, maxBarThickness:36 }] },
+    options:{ indexAxis:'y', responsive:true, plugins:{legend:{display:false}}, scales:{ x:{grid:{color:'#EEF1F6'}}, y:{grid:{display:false}} } }
+  }));
+
+  setupScrollSpy();
+}
+
+function animateRing(circleId, textId, value, radius){
+  const circle = document.getElementById(circleId);
+  const circumference = 2 * Math.PI * radius;
+  circle.setAttribute('stroke-dasharray', circumference.toFixed(1));
+  circle.style.strokeDashoffset = circumference;
+  // color según score
+  const color = value>=65 ? 'var(--green-500)' : value>=40 ? 'var(--yellow-600)' : 'var(--red-500)';
+  circle.style.stroke = color;
+  requestAnimationFrame(()=>{
+    const offset = circumference - (value/100)*circumference;
+    circle.style.strokeDashoffset = offset;
+  });
+  // conteo animado
+  const el = document.getElementById(textId);
+  let current = 0;
+  const step = Math.max(1, Math.round(value/30));
+  const timer = setInterval(()=>{
+    current += step;
+    if(current >= value){ current = value; clearInterval(timer); }
+    el.innerHTML = current + '<span>/100</span>';
+  }, 20);
+}
+
+/* ---- Scroll spy para sidebar ---- */
+function setupScrollSpy(){
+  const links = document.querySelectorAll('.sidebar-nav a');
+  const sections = Array.from(links).map(l=> document.querySelector(l.getAttribute('href')));
+  window.removeEventListener('scroll', scrollSpyHandler);
+  window.addEventListener('scroll', scrollSpyHandler, {passive:true});
+  function scrollSpyHandler(){
+    let currentIdx = 0;
+    sections.forEach((sec, idx)=>{ if(sec && sec.getBoundingClientRect().top < 140) currentIdx = idx; });
+    links.forEach((l,idx)=> l.classList.toggle('active', idx===currentIdx));
+  }
+}
+</script>
+
+<!--
+=====================================================================
+NOTA DE ARQUITECTURA — CONEXIÓN FUTURA CON EXCEL E IA
+=====================================================================
+Esta versión utiliza `demoRawData` como fuente de datos. Para conectar
+el procesamiento real, el flujo previsto es:
+
+  Excel Balance (.xlsx) ─┐
+                         ├─► Parser (SheetJS/xlsx) ─► Normalización de
+  Excel P&G (.xlsx) ─────┘     cuentas contables      cuentas ─► mismo
+                                                        objeto `raw`
+                                                        que ya consume
+                                                        buildFinancialModel()
+
+1. Parser: leer los .xlsx cargados por el usuario (por ejemplo con la
+   librería SheetJS) y extraer las celdas relevantes.
+2. Normalización de cuentas: mapear los nombres de cuentas del Excel
+   del cliente (que varían entre empresas) a las claves que ya usa
+   `demoRawData.balance` y `demoRawData.pyg`.
+3. A partir de ahí, TODO el resto del pipeline (buildFinancialModel,
+   calculateXxx, computeIndicators, computeHealthScore) funciona sin
+   cambios, porque ya opera sobre el objeto normalizado.
+
+Para conectar una IA real, `generateFinancialAnalysis(m, ind, health)`
+puede sustituirse por una llamada a una API (por ejemplo, Claude),
+enviando como contexto estructurado el objeto `ind` + `health`
+(nunca los cálculos crudos de Excel) y solicitando únicamente la
+interpretación gerencial. Los cálculos financieros deben seguir
+haciéndose en JavaScript: la IA solo interpreta resultados ya
+calculados, nunca reemplaza las fórmulas financieras.
+=====================================================================
+-->
+</body>
+</html>
