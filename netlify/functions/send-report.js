@@ -307,11 +307,12 @@ async function saveLeadToGoogleSheets({ nombre, correo, empresa, periodo, moneda
   try {
     const res = await fetch(webhookUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(leadRecord),
       redirect: 'follow'
     });
-    console.log('[GOOGLE SHEETS]: Lead guardado exitosamente en Google Sheets. HTTP Status:', res.status);
+    const responseText = await res.text();
+    console.log('[GOOGLE SHEETS]: Respuesta del Webhook:', res.status, responseText.slice(0, 200));
   } catch (err) {
     console.error('[GOOGLE SHEETS]: Error al transmitir datos a Google Sheets:', err.message);
   }
