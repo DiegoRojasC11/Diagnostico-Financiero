@@ -96,7 +96,9 @@ function buildPdfBuffer({ nombre, empresa, periodo, moneda, reportData }) {
       const tierColor = (tier) => (tier === 'green' ? green : tier === 'yellow' ? yellow : red);
 
       // Encabezado
-      doc.fillColor(navy).fontSize(20).font('Helvetica-Bold').text('Diagnóstico Financiero Inteligente', { align: 'left' });
+      doc.fillColor('#B8860B').fontSize(11).font('Helvetica-Bold').text('DyA FINANCIAL · AUDITORÍA CORPORATIVA', { align: 'left' });
+      doc.moveDown(0.2);
+      doc.fillColor(navy).fontSize(20).font('Helvetica-Bold').text('Diagnóstico Financiero Estratégico', { align: 'left' });
       doc.moveDown(0.3);
       doc.fillColor(gray).fontSize(10).font('Helvetica')
         .text(`Empresa: ${empresa}    ·    Periodo: ${periodo || '-'}    ·    Moneda: ${moneda || 'COP'}`);
@@ -190,7 +192,7 @@ function buildPdfBuffer({ nombre, empresa, periodo, moneda, reportData }) {
 
       doc.moveDown(1.5);
       doc.fillColor('#98A5B8').fontSize(8).font('Helvetica')
-        .text('Este informe es un diagnóstico automatizado con fines demostrativos y no constituye asesoría financiera formal.', { align: 'center' });
+        .text('Este informe es una auditoría diagnóstica automatizada emitida por DyA Financial. Para asesoría y acompañamiento financiero corporativo contáctanos en contacto@dyafinancial.com', { align: 'center' });
 
       doc.end();
     } catch (err) {
@@ -234,36 +236,83 @@ exports.handler = async (event) => {
     });
 
     const resend = new Resend(process.env.RESEND_API_KEY);
-    const from = process.env.RESEND_FROM || 'Diagnóstico Financiero <onboarding@resend.dev>';
+    const from = process.env.RESEND_FROM || 'DyA Financial <onboarding@resend.dev>';
 
     const { error } = await resend.emails.send({
       from,
       to: payload.correo,
-      subject: `Tu Diagnóstico Financiero — ${payload.empresa}`,
+      subject: `Tu Diagnóstico Financiero Estratégico — ${payload.empresa} | DyA Financial`,
       html: `
-        <p>Hola ${payload.nombre},</p>
-        <p>Adjunto encontrarás el informe en PDF de tu Diagnóstico Financiero Inteligente para <b>${payload.empresa}</b>.</p>
-        <p>Si quieres profundizar en estos resultados con nuestro equipo, responde este correo y agendamos una llamada.</p>
+        <div style="font-family: sans-serif; color: #111A2B; line-height: 1.6; max-width: 600px;">
+          <h2 style="color: #0A1E38; margin-bottom: 12px;">Hola ${payload.nombre},</h2>
+          <p>Adjunto encontrarás el informe oficial en PDF de tu <b>Diagnóstico Financiero Estratégico</b> para <b>${payload.empresa}</b>, elaborado por el motor analítico de <b>DyA Financial</b>.</p>
+          <p>Este informe detalla tu índice de salud financiera, alertas prioritarias en liquidez y recomendaciones para optimizar el flujo de caja y capital de trabajo de tu negocio.</p>
+          <div style="margin: 24px 0; padding: 18px; background: #F4F6FB; border-left: 4px solid #1E50D6; border-radius: 6px;">
+            <p style="margin: 0; font-weight: bold; color: #0A1E38;">¿Quieres estructurar el plan de acción con un consultor?</p>
+            <p style="margin: 6px 0 0; font-size: 14px; color: #4B5872;">Responde directamente a este correo o escríbenos para agendar una sesión de acompañamiento financiero con nuestro equipo.</p>
+          </div>
+          <p style="font-size: 13px; color: #75839A; margin-top: 24px;">Atentamente,<br><b>Equipo de Consultoría Financiera</b><br>DyA Financial</p>
+        </div>
       `,
       attachments: [
         {
-          filename: `diagnostico-financiero-${payload.empresa.replace(/\s+/g, '-').toLowerCase()}.pdf`,
+          filename: `dya-diagnostico-financiero-${payload.empresa.replace(/\s+/g, '-').toLowerCase()}.pdf`,
           content: pdfBuffer.toString('base64')
         }
       ]
     });
 
-    if (error) {
-      console.error('Error de Resend:', error);
-      return jsonResponse(502, { error: 'No se pudo enviar el correo. Intenta de nuevo en unos minutos.' });
-    }
+    // Guardado automático del prospecto en Google Sheets
+    await saveLeadToGoogleSheets({
+      nombre: payload.nombre,
+      correo: payload.correo,
+      empresa: payload.empresa,
+      periodo: payload.periodo,
+      moneda: payload.moneda,
+      reportData: payload.reportData
+    });
 
-    // TODO (fase futura): guardar el lead {nombre, correo, empresa, fecha}
-    // en una base de datos / CRM real para seguimiento comercial.
-
-    return jsonResponse(200, { ok: true, message: 'Informe enviado correctamente.' });
+    return jsonResponse(200, { ok: true, message: 'Informe generado y enviado correctamente.' });
   } catch (err) {
     console.error('Error generando/enviando el PDF:', err);
     return jsonResponse(500, { error: 'Ocurrió un error generando el informe.' });
   }
 };
+
+/**
+ * Envía los datos del lead a un Webhook de Google Sheets (Google Apps Script)
+ * y los registra en los logs de Netlify para que nunca se pierda ningún contacto.
+ */
+async function saveLeadToGoogleSheets({ nombre, correo, empresa, periodo, moneda, reportData }) {
+  const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
+  const leadRecord = {
+    fecha: new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' }),
+    nombre,
+    correo,
+    empresa,
+    periodo: periodo || '-',
+    moneda: moneda || 'COP',
+    score: reportData?.scoreTotal ?? 0,
+    salud: reportData?.scoreLabel || 'No clasificado',
+    resumen: reportData?.resumenEjecutivo ? reportData.resumenEjecutivo.slice(0, 300) : ''
+  };
+
+  console.log('[D&A FINANCIAL - NUEVO LEAD CAPTURADO]:', JSON.stringify(leadRecord, null, 2));
+
+  if (!webhookUrl) {
+    console.log('[GOOGLE SHEETS]: Variable GOOGLE_SHEETS_WEBHOOK_URL no configurada aún. Lead preservado en logs.');
+    return;
+  }
+
+  try {
+    const res = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(leadRecord),
+      redirect: 'follow'
+    });
+    console.log('[GOOGLE SHEETS]: Lead guardado exitosamente en Google Sheets. HTTP Status:', res.status);
+  } catch (err) {
+    console.error('[GOOGLE SHEETS]: Error al transmitir datos a Google Sheets:', err.message);
+  }
+}
