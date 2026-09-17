@@ -690,6 +690,7 @@
         nombre,
         correo,
         empresa,
+        sector: state.lastDiagnosis?.sector || 'Comercio',
         periodo: state.lastDiagnosis?.periodo || 'Periodo analizado',
         moneda: state.lastDiagnosis?.moneda || 'COP',
         reportData: state.lastDiagnosis?.reportData || {}

@@ -267,6 +267,7 @@ exports.handler = async (event) => {
       nombre: payload.nombre,
       correo: payload.correo,
       empresa: payload.empresa,
+      sector: payload.sector,
       periodo: payload.periodo,
       moneda: payload.moneda,
       reportData: payload.reportData
@@ -283,13 +284,14 @@ exports.handler = async (event) => {
  * Envía los datos del lead a un Webhook de Google Sheets (Google Apps Script)
  * y los registra en los logs de Netlify para que nunca se pierda ningún contacto.
  */
-async function saveLeadToGoogleSheets({ nombre, correo, empresa, periodo, moneda, reportData }) {
+async function saveLeadToGoogleSheets({ nombre, correo, empresa, sector, periodo, moneda, reportData }) {
   const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
   const leadRecord = {
     fecha: new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' }),
     nombre,
     correo,
     empresa,
+    sector: sector || 'Comercio',
     periodo: periodo || '-',
     moneda: moneda || 'COP',
     score: reportData?.scoreTotal ?? 0,
